@@ -1,4 +1,4 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import { Controller, Get, Req, Response } from '@nestjs/common';
 import { RiksarkivetService } from './riksarkivet.service';
 import { Request } from 'express';
 
@@ -7,7 +7,11 @@ export class RiksarkivetController {
     constructor(private riksarkivetService: RiksarkivetService) { }
 
     @Get()
-    checkIfBookable(@Req() request: Request) {
-        return this.riksarkivetService.checkIfBookable();
+    async notify_if_bookable(@Req() request: Request) {
+        await this.riksarkivetService.notify_if_bookable()
+        .catch((error) => {
+            console.error(error);
+        });
+        return;
     }
 }
