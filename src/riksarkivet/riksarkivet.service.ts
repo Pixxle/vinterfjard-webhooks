@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Telegram } from '../repository/telegram';
 import * as crypto from "crypto";
+import axios from 'axios';
 
 @Injectable()
 export class RiksarkivetService {
@@ -24,31 +25,35 @@ export class RiksarkivetService {
     }
 
     private async register_hash(hash: string) {
-        const registration = await fetch(
-            `https://app.waiteraid.com/reservation/?app_type=bokabord&hash=${hash}`,
+        const registration = await axios.get(
+            `https://app.waiteraid.com/reservation/?amount=&app_type=bokabord&custom_request=&date=&from_url=bokabord&hash=${hash}&is_bokabord_web=Y&mealid=&time=`,
             {
               headers: {
-                "User-Agent":
-                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0",
-                Accept:
-                  "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0",
+                "Referer": "https://www.bokabord.se/",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "Accept-Encoding":"gzip, deflate, br",
                 "Accept-Language": "en-US,en;q=0.5",
                 "Upgrade-Insecure-Requests": "1",
                 "Sec-Fetch-Dest": "iframe",
                 "Sec-Fetch-Mode": "navigate",
                 "Sec-Fetch-Site": "cross-site",
-              },
-              referrer: "https://gamlariksarkivet.com/",
-              method: "GET",
-            });
-
+              }
+            }
+        );
+        
         if (registration.status !== 200) {
-            throw new Error(`ERROR_MESSAGE: ${registration.body}`);
+            throw new Error(`ERROR_MESSAGE: ${registration.status} ${registration.statusText} ${registration.data}`);
         }
+        if (registration["success"] === undefined || registration["success"] === false) {
+            throw new Error(`Registration failed, got response ${registration.data}`);
+        }
+
+        return true;
     }
 
     private async get_times(hash: string) {
-        const times_request = await fetch(
+        const times_request = await axios.post(
             "https://app.waiteraid.com/booking-widget/api/getTimes",
             {
               headers: {
@@ -67,25 +72,33 @@ export class RiksarkivetService {
             }
           );
         if (times_request.status !== 200) {
-            throw new Error(`ERROR_MESSAGE: ${times_request.body}`);
-        }
-        const times = await times_request.json()
-        return times["times"].lenght > 0;
+            throw new Error(`ERROR_MESSAGE: ${times_request.status} ${times_request.statusText}`);
+        };
+        console.log(times_request.data)
+        if (times_request.data.times === undefined) {
+            throw new Error(`Times is undefined, got response ${times_request.data}`);
+        };
+        return times_request.data.times.length > 0;
     }
 
     async notify_if_bookable() {
         const hash = this.generate_hash();
+
         const registered = await this.register_hash(hash)
         .catch((err) => {
             this.telegram.sendMessage(`RIKSARKIVET: Failed to register hash, ${err}`);
-            throw new Error(`Failed to register hash, ${err}`);
+            return new Error(`Failed to register hash, ${err}`);
         });
-        const times_available = this.get_times(hash)
+
+        if (typeof registered !== 'boolean' || registered === true) return;
+        
+        const times_available = await this.get_times(hash)
         .catch((err) => {
             this.telegram.sendMessage(`RIKSARKIVET: Failed to get times, ${err}`);
-            throw new Error(`Failed to get times`);
+            return new Error(`Failed to get times ${err}`);
         });
-        if (times_available) {
+
+        if (typeof times_available === 'boolean' && times_available === true) {
             this.telegram.sendMessage(`RIKSARKIVET: Times available`);
         };
     }
