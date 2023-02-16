@@ -26,8 +26,8 @@ export class Telegram {
         })
         .then((res) => {
             if (!this.debug) return;
-            console.log('TELEGRAM_BOT_RESPONSE: ' + res);
-            this.bot.sendMessage(this.chatId, 'DEBUG_TELEGRAM_BOT_RESPONSE: ' + res);
+            console.log(`TELEGRAM_BOT_RESPONSE: ${res}`);
+            this.bot.sendMessage(this.chatId, `DEBUG_TELEGRAM_BOT_RESPONSE: ${res}`);
         })
     }
 }
