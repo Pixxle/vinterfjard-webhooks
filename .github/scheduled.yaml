@@ -10,4 +10,4 @@ jobs:
         run: |
           curl --request POST \
           --url 'https://vinterfjard-webhooks.vercel.app/riksarkivet' \
-          --header 'Authorization: Bearer ${{ secrets.ACTION_KEY }}'
+          --header 'Authorization: Bearer ${{ secrets.CRON_KEY}}'
