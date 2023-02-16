@@ -7,7 +7,6 @@ export class RiksarkivetController {
 
     @Get()
     checkIfBookable(@Req() request: Request) {
-        console.log(process.env);
         return this.riksarkivetService.checkIfBookable();
     }
 }
