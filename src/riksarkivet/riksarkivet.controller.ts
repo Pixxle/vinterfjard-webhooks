@@ -1,5 +1,6 @@
 import { Controller, Get, Req } from '@nestjs/common';
 import { RiksarkivetService } from './riksarkivet.service';
+import { Request } from 'express';
 
 @Controller('riksarkivet')
 export class RiksarkivetController {
