@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Telegram } from '../repository/telegram';
 import * as crypto from "crypto";
-import fetch from "node-fetch";
 
 @Injectable()
 export class RiksarkivetService {
@@ -44,8 +43,7 @@ export class RiksarkivetService {
             });
 
         if (registration.status !== 200) {
-            this.telegram.sendMessage(`RIKSARKIVET: Failed to register hash, ${registration.body}`);
-            throw new Error(`Failed to register hash ${hash}`);
+            throw new Error(`ERROR_MESSAGE: ${registration.body}`);
         }
     }
 
@@ -69,15 +67,9 @@ export class RiksarkivetService {
             }
           );
         if (times_request.status !== 200) {
-            this.telegram.sendMessage(`RIKSARKIVET: Failed to get times, ${times_request.body}`);
-            throw new Error(`Failed to get times`);
+            throw new Error(`ERROR_MESSAGE: ${times_request.body}`);
         }
         const times = await times_request.json()
-        .catch((err) => {
-            this.telegram.sendMessage(`RIKSARKIVET: Failed to parse times, ${err}`);
-            throw new Error(`Failed to parse times`);
-        });
-
         return times["times"].lenght > 0;
     }
 
@@ -86,7 +78,7 @@ export class RiksarkivetService {
         const registered = await this.register_hash(hash)
         .catch((err) => {
             this.telegram.sendMessage(`RIKSARKIVET: Failed to register hash, ${err}`);
-            throw new Error(`Failed to register hash`);
+            throw new Error(`Failed to register hash, ${err}`);
         });
         const times_available = this.get_times(hash)
         .catch((err) => {
