@@ -1,4 +1,4 @@
-import TelegramBot from 'node-telegram-bot-api';
+import * as TelegramBot from 'node-telegram-bot-api';
 export class Telegram {
     private chatId: string;
     private apiKey: string;
@@ -15,7 +15,7 @@ export class Telegram {
         this.apiKey = apiKey;
         this.chatId = chatId;
         this.debug = debug;
-        this.bot = new TelegramBot(this.apiKey, { polling: false })
+        this.bot = new TelegramBot(this.apiKey, { polling: false });
     }
 
     public async sendMessage(message: string): Promise<void> {

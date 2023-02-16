@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Telegram } from '../repository/telegram';
 import * as crypto from "crypto";
+import fetch from "node-fetch";
 
 @Injectable()
 export class RiksarkivetService {
@@ -27,7 +28,6 @@ export class RiksarkivetService {
         const registration = await fetch(
             `https://app.waiteraid.com/reservation/?app_type=bokabord&hash=${hash}`,
             {
-              credentials: "include",
               headers: {
                 "User-Agent":
                   "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0",
@@ -41,7 +41,6 @@ export class RiksarkivetService {
               },
               referrer: "https://gamlariksarkivet.com/",
               method: "GET",
-              mode: "cors",
             });
 
         if (registration.status !== 200) {
@@ -54,7 +53,6 @@ export class RiksarkivetService {
         const times_request = await fetch(
             "https://app.waiteraid.com/booking-widget/api/getTimes",
             {
-              credentials: "include",
               headers: {
                 "User-Agent":
                   "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0",
@@ -68,7 +66,6 @@ export class RiksarkivetService {
               referrer: `https://app.waiteraid.com/reservation/?app_type=bokabord&hash=${hash}`,
               body: '{"testmode":0,"date_code":"","date":"2023-12-24","amount":2,"mealid":"27658","mc_code":"","hd_meal":"","hash":"59109446d7cb665b3539e83f12fe96ca","int_test":"N","lang":"","M0x3bXlFNE5PUEh1R2ZpWCtNWG5tQT09":"anFGdWFNWDlKQjVNb080SQ"}',
               method: "POST",
-              mode: "cors",
             }
           );
         if (times_request.status !== 200) {
@@ -81,7 +78,7 @@ export class RiksarkivetService {
             throw new Error(`Failed to parse times`);
         });
 
-        return times.times.lenght > 0;
+        return times["times"].lenght > 0;
     }
 
     async notify_if_bookable() {
