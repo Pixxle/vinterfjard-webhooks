@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Telegram } from 'src/repository/telegram';
-import { ChatGPT } from 'src/repository/chatgpt';
-import type { TelegramMessage } from 'src/utils/types/telegram_message';
+import { Telegram } from '../repository/telegram';
+import { ChatGPT } from '../repository/chatgpt';
+import type { TelegramMessage } from '../utils/types/telegram_message';
 
 @Injectable()
 export class ChatgptService {

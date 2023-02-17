@@ -1,7 +1,7 @@
 import { Controller, Post, Body} from '@nestjs/common';
 import { ChatgptService } from '../chatgpt/chatgpt.service';
-import { TelegramMessage } from 'src/utils/types/telegram_message';
-import { Telegram } from 'src/repository/telegram';
+import { TelegramMessage } from '../utils/types/telegram_message';
+import { Telegram } from '../repository/telegram';
 
 /* TELEGRAM WEBHOOK CONTROLLER */
 @Controller('telegram')
