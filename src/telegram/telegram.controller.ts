@@ -22,22 +22,23 @@ export class TelegramController {
     }
 
     @Post()
-    webhook(@Body() incoming_message: TelegramMessage) {
+    async webhook(@Body() incoming_message: TelegramMessage) {
 
         if (!incoming_message.message.text.startsWith('!')) {
             return;
         };
 
         if (incoming_message.message.text.startsWith('!chatgpt')) {
-            this.chatGPTService.handle_prompt(incoming_message);
+            await this.chatGPTService.handle_prompt(incoming_message);
             return;
         }
 
         if (incoming_message.message.text.startsWith('!help')) {
-            this.telegram.send_message('Available commands: !chatgpt');
+            await this.telegram.send_message('Available commands: !chatgpt');
             return;
         }
 
-        this.telegram.send_message('Unknown command received. Type !help for a list of available commands.');
+        await this.telegram.send_message('Unknown command received. Type !help for a list of available commands.');
+        return;
     }
 }
