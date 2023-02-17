@@ -20,10 +20,10 @@ export class Telegram {
     }
 
     public async send_message(message: string): Promise<void> {
-        this.bot.telegram.sendMessage(this.chatId, message)
+        await this.bot.telegram.sendMessage(this.chatId, message)
         .catch((error) => {
-            this.bot.telegram.sendMessage(this.chatId, 'TELEGRAM_BOT_ERROR: ' + error);
             console.error(error);
+            this.bot.telegram.sendMessage(this.chatId, 'TELEGRAM_BOT_ERROR: ' + error);
         })
         .then((res) => {
             if (!this.debug) return;
