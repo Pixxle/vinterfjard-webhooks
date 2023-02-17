@@ -86,7 +86,7 @@ export class RiksarkivetService {
 
         const registered = await this.register_hash(hash)
         .catch((err) => {
-            this.telegram.sendMessage(`RIKSARKIVET: Failed to register hash, ${err}`);
+            this.telegram.send_message(`RIKSARKIVET: Failed to register hash, ${err}`);
             return new Error(`Failed to register hash, ${err}`);
         });
 
@@ -94,12 +94,12 @@ export class RiksarkivetService {
         
         const times_available = await this.get_times(hash)
         .catch((err) => {
-            this.telegram.sendMessage(`RIKSARKIVET: Failed to get times, ${err}`);
+            this.telegram.send_message(`RIKSARKIVET: Failed to get times, ${err}`);
             return new Error(`Failed to get times ${err}`);
         });
 
         if (typeof times_available === 'boolean' && times_available === true) {
-            this.telegram.sendMessage(`RIKSARKIVET: Times available`);
+            this.telegram.send_message(`RIKSARKIVET: Times available`);
         };
     }
 }

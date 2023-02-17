@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TelegramController } from './telegram.controller';
-import { TelegramService } from './telegram.service';
+import { ChatgptService } from '../chatgpt/chatgpt.service';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
     imports: [ConfigModule.forRoot()],
     controllers: [TelegramController],
-    providers: [TelegramService],
+    providers: [ChatgptService],
 })
 export class TelegramModule { }

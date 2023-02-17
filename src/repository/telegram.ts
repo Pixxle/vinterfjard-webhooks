@@ -18,7 +18,7 @@ export class Telegram {
         this.bot = new TelegramBot(this.apiKey, { polling: false });
     }
 
-    public async sendMessage(message: string): Promise<void> {
+    public async send_message(message: string): Promise<void> {
         await this.bot.sendMessage(this.chatId, message)
         .catch((error) => {
             this.bot.sendMessage(this.chatId, 'TELEGRAM_BOT_ERROR: ' + error);
