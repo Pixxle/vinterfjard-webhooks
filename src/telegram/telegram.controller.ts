@@ -17,8 +17,8 @@ export class TelegramController {
         this.telegram = new Telegram(process.env.TELEGRAM_API_KEY, process.env.TELEGRAM_CHAT_ID);
     }
 
-    private send_help_message() {
-        this.telegram.send_message('Available commands: !chatgpt');
+    private async send_help_message() {
+        await this.telegram.send_message('Available commands: !chatgpt');
     }
 
     @Post()
