@@ -26,11 +26,11 @@ export class ChatgptService {
         const response = await this.chatgpt.handle_prompt(incoming_message.message.text);
 
         if (response instanceof Error) {
-            this.telegram.send_message('CHATGPT_ERROR: ' + response);
+            await this.telegram.send_message('CHATGPT_ERROR: ' + response);
             console.error(response);
             return;
         }
 
-        this.telegram.send_message(`🤖: ${response}`);
+       await  this.telegram.send_message(`🤖: ${response}`);
     };
 }
