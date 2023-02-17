@@ -22,7 +22,15 @@ export class ChatgptService {
         this.chatgpt = new ChatGPT(process.env.OPENAI_API_KEY, true);
     }
 
-    handle_prompt(incoming_message: TelegramMessage) {
-        this.telegram.send_message('Hello world!');
+    async handle_prompt(incoming_message: TelegramMessage) {
+        const response = await this.chatgpt.handle_prompt(incoming_message.message.text);
+
+        if (response instanceof Error) {
+            this.telegram.send_message('CHATGPT_ERROR: ' + response);
+            console.error(response);
+            return;
+        }
+
+        this.telegram.send_message(`🤖: ${response}`);
     };
 }
