@@ -38,7 +38,7 @@ export class TelegramController {
         };
 
         if (incoming_message.message.text.startsWith('!chatgpt')) {
-            await this.chatGPTService.handle_prompt(incoming_message);
+            await this.chatGPTService.telegram_prompt(incoming_message);
             return;
         }
 

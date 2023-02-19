@@ -22,8 +22,15 @@ export class ChatgptService {
         this.chatgpt = new ChatGPT(process.env.OPENAI_API_KEY, true);
     }
 
-    async handle_prompt(incoming_message: TelegramMessage) {
-        const response = await this.chatgpt.handle_prompt(incoming_message.message.text);
+    async telegram_prompt(incoming_message: TelegramMessage) {
+         /* Ensure we have a prompt stopper in the text */
+        const prompt_setup = `
+        The following text is a incoming message from a user. 
+        Please respond as usefully as possible but in a friendly manner,
+        try your best to answer any question the user might have but also make sure to append additional useful information to the response.
+        The response should not start with any other character than a space: \n
+        `
+        const response = await this.chatgpt.handle_prompt(prompt_setup + incoming_message.message.text);
 
         if (response instanceof Error) {
             await this.telegram.send_message('CHATGPT_ERROR: ' + response);
