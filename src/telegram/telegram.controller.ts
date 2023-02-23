@@ -3,6 +3,7 @@ import { ChatgptService } from '../chatgpt/chatgpt.service';
 import { TelegramMessage } from '../utils/types/telegram_message';
 import { Telegram } from '../repository/telegram';
 import { NotionService } from 'src/notion/notion.service';
+import * as cmd from '../utils/commands';
 
 /* This is ugly as sin, but don't _really_ consider this sensitive information  */
 const AUTHENTICATIED_USERS = {
@@ -51,19 +52,19 @@ export class TelegramController {
         }
 
         /* ChatGPT handler */
-        if (incoming_message.message.text.startsWith('chatgpt') && AUTHENTICATIED_USERS[incoming_message.message.from.username].includes('chatgpt')) {
+        if (incoming_message.message.text.startsWith(cmd.CHATGPT_COMMAND) && AUTHENTICATIED_USERS[incoming_message.message.from.username].includes('chatgpt')) {
             await this.chatGPTService.telegram_prompt(incoming_message);
             return;
         }
 
         /* Notion handler */
-        if (incoming_message.message.text.startsWith('notion') && AUTHENTICATIED_USERS[incoming_message.message.from.username].includes('notion')) {
-            if (incoming_message.message.text.startsWith('notion add')) {
+        if (incoming_message.message.text.startsWith(cmd.NOTION_COMMAND) && AUTHENTICATIED_USERS[incoming_message.message.from.username].includes('notion')) {
+            if (incoming_message.message.text.startsWith(cmd.NOTION_ADD_COMMAND)) {
                 const result = await this.notionService.async_add_to_database(incoming_message);
                 this.telegram.send_message(result, incoming_message.message.chat.id);
                 return;
             }
-            if (incoming_message.message.text.startsWith('notion list')) {
+            if (incoming_message.message.text.startsWith(cmd.NOTION_LIST_COMMAND)) {
                 const result = await this.notionService.list_database();
                 const header = 'Notion database listing:\n';
                 this.telegram.send_message(header+result, incoming_message.message.chat.id);
@@ -74,7 +75,7 @@ export class TelegramController {
             return;
         }
 
-        if (incoming_message.message.text.startsWith('help')) {
+        if (incoming_message.message.text.startsWith('/help')) {
             await this.send_help_message(incoming_message.message.chat.id, incoming_message.message.from.username);
             return;
         }
