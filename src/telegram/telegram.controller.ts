@@ -73,7 +73,7 @@ export class TelegramController {
                 return;
             }
             
-            await this.telegram.send_message('Available Notion commands: add, list', incoming_message.message.chat.id);
+            await this.send_help_message(incoming_message.message.chat.id, incoming_message.message.from.username);
             return;
         }
 
