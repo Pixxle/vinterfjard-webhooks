@@ -48,7 +48,11 @@ export class NotionService {
 
     public async async_add_to_database(telegram_message: TelegramMessage) {
         const entries = this.convert_telegram_message_to_notion_entries(telegram_message);
+        if (entries.length === 0) {
+            return 'No entries to add';
+        }
         await this.notion.add_to_database(entries);
+        return 'Added to database'
     }
 
     public async list_database() {

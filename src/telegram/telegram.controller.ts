@@ -5,10 +5,16 @@ import { Telegram } from '../repository/telegram';
 import { NotionService } from 'src/notion/notion.service';
 
 /* This is ugly as sin, but don't _really_ consider this sensitive information  */
-const AUTHENTICATIED_USERS = [
-    'dennisvinterfjard',
-    'Silvervarg',
-]
+const AUTHENTICATIED_USERS = {
+    'dennisvinterfjard': [
+        'chatgpt', 'notion'
+    ],
+
+    'Silvervarg': [
+        'notion'
+    ]
+}
+
 
 /* TELEGRAM WEBHOOK CONTROLLER */
 @Controller('telegram')
@@ -24,8 +30,13 @@ export class TelegramController {
         this.telegram = new Telegram(process.env.TELEGRAM_API_KEY);
     }
 
-    private async send_help_message(chatid: string) {
-        await this.telegram.send_message('Available commands: !chatgpt', chatid);
+    private async send_help_message(chatid: string, username: string) {
+        if (username in AUTHENTICATIED_USERS === false) {
+            await this.telegram.send_message('You are not authorized to use this bot.', chatid);
+            return;
+        }
+
+        await this.telegram.send_message(`Available commands: ${AUTHENTICATIED_USERS[username]}`, chatid);
     }
 
     @Post()
@@ -34,30 +45,37 @@ export class TelegramController {
             return;
         };
 
-        if (!AUTHENTICATIED_USERS.includes(incoming_message.message.from.username)) {
+        if (incoming_message.message.from.username in AUTHENTICATIED_USERS === false) {
             await this.telegram.send_message('You are not authorized to use this bot.', incoming_message.message.chat.id);
             return;
         }
 
-        if (incoming_message.message.text.startsWith('chatgpt')) {
+        /* ChatGPT handler */
+        if (incoming_message.message.text.startsWith('chatgpt') && AUTHENTICATIED_USERS[incoming_message.message.from.username].includes('chatgpt')) {
             await this.chatGPTService.telegram_prompt(incoming_message);
             return;
         }
 
-        if (incoming_message.message.text.startsWith('notion add')) {
-            await this.notionService.async_add_to_database(incoming_message);
-            return;
-        }
-
-        if (incoming_message.message.text.startsWith('notion list')) {
-            const result = await this.notionService.list_database();
-            const header = 'Notion database listing:\n';
-            this.telegram.send_message(header+result, incoming_message.message.chat.id);
+        /* Notion handler */
+        if (incoming_message.message.text.startsWith('notion') && AUTHENTICATIED_USERS[incoming_message.message.from.username].includes('notion')) {
+            if (incoming_message.message.text.startsWith('notion add')) {
+                const result = await this.notionService.async_add_to_database(incoming_message);
+                this.telegram.send_message(result, incoming_message.message.chat.id);
+                return;
+            }
+            if (incoming_message.message.text.startsWith('notion list')) {
+                const result = await this.notionService.list_database();
+                const header = 'Notion database listing:\n';
+                this.telegram.send_message(header+result, incoming_message.message.chat.id);
+                return;
+            }
+            
+            await this.telegram.send_message('Avaiable Notion commands: add, list', incoming_message.message.chat.id);
             return;
         }
 
         if (incoming_message.message.text.startsWith('help')) {
-            await this.telegram.send_message('Available commands: chatgpt', incoming_message.message.chat.id);
+            await this.send_help_message(incoming_message.message.chat.id, incoming_message.message.from.username);
             return;
         }
 
