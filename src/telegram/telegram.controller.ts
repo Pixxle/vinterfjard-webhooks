@@ -8,11 +8,11 @@ import * as cmd from '../utils/commands';
 /* This is ugly as sin, but don't _really_ consider this sensitive information  */
 const AUTHENTICATIED_USERS = {
     'dennisvinterfjard': [
-        'chatgpt', 'notion'
+        cmd.CHATGPT_COMMAND, cmd.NOTION_COMMAND
     ],
 
     'Silvervarg': [
-        'notion'
+        cmd.NOTION_COMMAND
     ]
 }
 
@@ -52,13 +52,15 @@ export class TelegramController {
         }
 
         /* ChatGPT handler */
-        if (incoming_message.message.text.startsWith(cmd.CHATGPT_COMMAND) && AUTHENTICATIED_USERS[incoming_message.message.from.username].includes('chatgpt')) {
+        if (incoming_message.message.text.startsWith(cmd.CHATGPT_COMMAND) && 
+                AUTHENTICATIED_USERS[incoming_message.message.from.username].includes(cmd.CHATGPT_COMMAND)) {
             await this.chatGPTService.telegram_prompt(incoming_message);
             return;
         }
 
         /* Notion handler */
-        if (incoming_message.message.text.startsWith(cmd.NOTION_COMMAND) && AUTHENTICATIED_USERS[incoming_message.message.from.username].includes('notion')) {
+        if (incoming_message.message.text.startsWith(cmd.NOTION_COMMAND) && 
+                AUTHENTICATIED_USERS[incoming_message.message.from.username].includes(cmd.NOTION_COMMAND)) {
             if (incoming_message.message.text.startsWith(cmd.NOTION_ADD_COMMAND)) {
                 const result = await this.notionService.async_add_to_database(incoming_message);
                 this.telegram.send_message(result, incoming_message.message.chat.id);
