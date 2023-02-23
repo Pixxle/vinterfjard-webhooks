@@ -7,6 +7,7 @@ import axios from 'axios';
 export class RiksarkivetService {
     private telegram: Telegram;
     private debug: boolean;
+    private chatid: string;
     constructor() {
         if (process.env.TELEGRAM_API_KEY === undefined) {
             throw new Error('TELEGRAM_API_KEY is undefined');
@@ -15,7 +16,8 @@ export class RiksarkivetService {
             throw new Error('TELEGRAM_CHAT_ID is undefined');
         }
         this.debug = process.env?.RIKSARKIVET_DEBUG === 'true' ? true : false;
-        this.telegram = new Telegram(process.env.TELEGRAM_API_KEY, process.env.TELEGRAM_CHAT_ID, this.debug);
+        this.telegram = new Telegram(process.env.TELEGRAM_API_KEY, this.debug);
+        this.chatid = process.env.TELEGRAM_CHAT_ID; 
     }
 
     private generate_hash() {
@@ -86,7 +88,7 @@ export class RiksarkivetService {
 
         const registered = await this.register_hash(hash)
         .catch((err) => {
-            this.telegram.send_message(`RIKSARKIVET: Failed to register hash, ${err}`);
+            this.telegram.send_message(`RIKSARKIVET: Failed to register hash, ${err}`, this.chatid);
             return new Error(`Failed to register hash, ${err}`);
         });
 
@@ -94,12 +96,12 @@ export class RiksarkivetService {
         
         const times_available = await this.get_times(hash)
         .catch((err) => {
-            this.telegram.send_message(`RIKSARKIVET: Failed to get times, ${err}`);
+            this.telegram.send_message(`RIKSARKIVET: Failed to get times, ${err}`, this.chatid);
             return new Error(`Failed to get times ${err}`);
         });
 
         if (typeof times_available === 'boolean' && times_available === true) {
-            this.telegram.send_message(`RIKSARKIVET: Times available`);
+            this.telegram.send_message(`RIKSARKIVET: Times available`, this.chatid);
         };
     }
 }

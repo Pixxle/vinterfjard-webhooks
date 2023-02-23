@@ -12,13 +12,10 @@ export class ChatgptService {
         if (process.env.TELEGRAM_API_KEY === undefined) {
             throw new Error('TELEGRAM_API_KEY is undefined');
         }
-        if (process.env.TELEGRAM_CHAT_ID === undefined) {
-            throw new Error('TELEGRAM_CHAT_ID is undefined');
-        }
         if (process.env.OPENAI_API_KEY === undefined) {
             throw new Error('OPENAI_API_KEY is undefined');
         }
-        this.telegram = new Telegram(process.env.TELEGRAM_API_KEY, process.env.TELEGRAM_CHAT_ID);
+        this.telegram = new Telegram(process.env.TELEGRAM_API_KEY);
         this.chatgpt = new ChatGPT(process.env.OPENAI_API_KEY, true);
     }
 
@@ -33,11 +30,11 @@ export class ChatgptService {
         const response = await this.chatgpt.handle_prompt(prompt_setup + incoming_message.message.text);
 
         if (response instanceof Error) {
-            await this.telegram.send_message('CHATGPT_ERROR: ' + response);
+            await this.telegram.send_message('CHATGPT_ERROR: ' + response, incoming_message.message.chat.id);
             console.error(response);
             return;
         }
 
-       await  this.telegram.send_message(`🤖: ${response}`);
+       await  this.telegram.send_message(`🤖: ${response}`, incoming_message.message.chat.id);
     };
 }
