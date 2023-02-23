@@ -3,6 +3,7 @@ import { Notion } from '../repository/notion';
 import type { NotionEntry } from '../utils/types/notion_entry';
 import { TelegramMessage } from 'src/utils/types/telegram_message';
 import { NotionPage } from 'src/utils/types/notion_page';
+import { NOTION_ADD_COMMAND } from 'src/utils/commands';
 
 @Injectable()
 export class NotionService {
@@ -22,9 +23,11 @@ export class NotionService {
             throw new Error('Telegram message does not contain a message');
         }
 
+        const filtered = telegram_message.message.text.split('\n').filter((line) => !line.startsWith(NOTION_ADD_COMMAND));
+
         const res: NotionEntry[] = [];
 
-        telegram_message.message.text.split('\n').forEach((line) => {
+        filtered.forEach((line) => {
             if (line.startsWith('notion')) return;
             const [name, link] = line.split(' ');
             res.push({ Name: name, Link: link });
