@@ -16,7 +16,7 @@ const AUTHENTICATIED_USERS = {
     ]
 }
 
-type service_command_handlers = {
+type command_service_handler = {
     [CHATGPT_COMMAND]: ChatgptService,
     [NOTION_COMMAND]: NotionService,
 }
@@ -25,7 +25,7 @@ type service_command_handlers = {
 @Controller('telegram')
 export class TelegramController {
     private telegram: Telegram;
-    private cmd: service_command_handlers;
+    private command_service: command_service_handler;
     constructor(
         private chatGPTService: ChatgptService,
         private notionService: NotionService
@@ -35,7 +35,7 @@ export class TelegramController {
         }
         this.telegram = new Telegram(process.env.TELEGRAM_API_KEY);
 
-        this.cmd = {
+        this.command_service = {
             [CHATGPT_COMMAND]: this.chatGPTService,
             [NOTION_COMMAND]: this.notionService,
         }
@@ -77,8 +77,7 @@ export class TelegramController {
             return;
         }
 
-        if (user_command in this.cmd === false) {
-            console.log(this.cmd);
+        if (user_command in this.command_service === false) {
             await this.telegram.send_message('Unknown command received. Type help for a list of available commands.', incoming_message.message.chat.id);
             return;
         }
@@ -88,7 +87,7 @@ export class TelegramController {
             return;
         }
         
-        const res : string = await this.cmd[user_command].telegram_prompt(incoming_message);
+        const res : string = await this.command_service[user_command].telegram_prompt(incoming_message);
         if (!res)  return;
 
         await this.telegram.send_message(res, incoming_message.message.chat.id);
