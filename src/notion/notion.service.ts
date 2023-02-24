@@ -3,7 +3,7 @@ import { Notion } from '../repository/notion';
 import type { NotionEntry } from '../utils/types/notion_entry';
 import { TelegramMessage } from 'src/utils/types/telegram_message';
 import { NotionPage } from 'src/utils/types/notion_page';
-import { NOTION_COMMAND } from 'src/utils/commands';
+import { NOTION_COMMAND, NOTION_ADD_COMMAND, NOTION_LIST_COMMAND} from 'src/utils/constants/commands';
 
 @Injectable()
 export class NotionService {
@@ -44,7 +44,26 @@ export class NotionService {
             res += `${name} ${link ? link : ''} ${status} \n`
         }
 
-        return res;
+        const header = 'Notion database: \n'
+        return header+res;
+    }
+
+    private telegram_help_messages() {
+        return `Available commands: ${NOTION_ADD_COMMAND}, ${NOTION_LIST_COMMAND}`;
+    }
+
+    public async telegram_prompt(telegram_message: TelegramMessage) {
+        const user_command = telegram_message.message.text.split('\n')[0];
+        if (user_command === NOTION_COMMAND) {
+            const res = this.telegram_help_messages();
+            return res;
+        }
+        if (user_command === NOTION_ADD_COMMAND) {
+            return await this.async_add_to_database(telegram_message);
+        }
+        if (user_command === NOTION_LIST_COMMAND) {
+            return await this.list_database();
+        }
     }
 
     public async async_add_to_database(telegram_message: TelegramMessage) {

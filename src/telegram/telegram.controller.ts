@@ -3,24 +3,29 @@ import { ChatgptService } from '../chatgpt/chatgpt.service';
 import { TelegramMessage } from '../utils/types/telegram_message';
 import { Telegram } from '../repository/telegram';
 import { NotionService } from 'src/notion/notion.service';
-import * as cmd from '../utils/commands';
+import { HELP_COMMAND, CHATGPT_COMMAND, NOTION_COMMAND } from '../utils/constants/commands';
 
 /* This is ugly as sin, but don't _really_ consider this sensitive information  */
 const AUTHENTICATIED_USERS = {
     'dennisvinterfjard': [
-        cmd.CHATGPT_COMMAND, cmd.NOTION_COMMAND
+        CHATGPT_COMMAND, NOTION_COMMAND
     ],
 
     'Silvervarg': [
-        cmd.NOTION_COMMAND
+        NOTION_COMMAND
     ]
 }
 
+type service_command_handlers = {
+    [CHATGPT_COMMAND]: ChatgptService,
+    [NOTION_COMMAND]: NotionService,
+}
 
 /* TELEGRAM WEBHOOK CONTROLLER */
 @Controller('telegram')
 export class TelegramController {
     private telegram: Telegram;
+    private cmd: service_command_handlers;
     constructor(
         private chatGPTService: ChatgptService,
         private notionService: NotionService
@@ -29,15 +34,29 @@ export class TelegramController {
             throw new Error('TELEGRAM_API_KEY is undefined');
         }
         this.telegram = new Telegram(process.env.TELEGRAM_API_KEY);
+
+        this.cmd = {
+            [CHATGPT_COMMAND]: this.chatGPTService,
+            [NOTION_COMMAND]: this.notionService,
+        }
     }
 
-    private async send_help_message(chatid: string, username: string) {
+    private async help_message(incoming_message: TelegramMessage) {
+        const username = incoming_message.message.from.username;
         if (username in AUTHENTICATIED_USERS === false) {
-            await this.telegram.send_message('You are not authorized to use this bot.', chatid);
-            return;
+            return 'You are not authorized to use this bot.';
         }
+        return `Available commands: ${AUTHENTICATIED_USERS[username]}`;
+    }
 
-        await this.telegram.send_message(`Available commands: ${AUTHENTICATIED_USERS[username]}`, chatid);
+    private auth(username: string, command: string) {
+        if (username in AUTHENTICATIED_USERS === false) {
+            return false;
+        }
+        if (AUTHENTICATIED_USERS[username].includes(command) === false) {
+            return false;
+        }
+        return true;
     }
 
     @Post()
@@ -51,38 +70,28 @@ export class TelegramController {
             return;
         }
 
-        /* ChatGPT handler */
-        if (incoming_message.message.text.startsWith(cmd.CHATGPT_COMMAND) && 
-                AUTHENTICATIED_USERS[incoming_message.message.from.username].includes(cmd.CHATGPT_COMMAND)) {
-            await this.chatGPTService.telegram_prompt(incoming_message);
+        const user_command = incoming_message.message.text.split('\n')[0].split(' ')[0];
+
+        if (user_command === HELP_COMMAND) {
+            await this.telegram.send_message(await this.help_message(incoming_message), incoming_message.message.chat.id);
             return;
         }
 
-        /* Notion handler */
-        if (incoming_message.message.text.startsWith(cmd.NOTION_COMMAND) && 
-                AUTHENTICATIED_USERS[incoming_message.message.from.username].includes(cmd.NOTION_COMMAND)) {
-            if (incoming_message.message.text.startsWith(cmd.NOTION_ADD_COMMAND)) {
-                const result = await this.notionService.async_add_to_database(incoming_message);
-                this.telegram.send_message(result, incoming_message.message.chat.id);
-                return;
-            }
-            if (incoming_message.message.text.startsWith(cmd.NOTION_LIST_COMMAND)) {
-                const result = await this.notionService.list_database();
-                const header = 'Notion database listing:\n';
-                this.telegram.send_message(header+result, incoming_message.message.chat.id);
-                return;
-            }
-            
-            await this.send_help_message(incoming_message.message.chat.id, incoming_message.message.from.username);
+        if (user_command in this.cmd === false) {
+            console.log(this.cmd);
+            await this.telegram.send_message('Unknown command received. Type help for a list of available commands.', incoming_message.message.chat.id);
             return;
         }
 
-        if (incoming_message.message.text.startsWith('/help')) {
-            await this.send_help_message(incoming_message.message.chat.id, incoming_message.message.from.username);
+        if (!this.auth(incoming_message.message.from.username, user_command)) {
+            await this.telegram.send_message(await this.help_message(incoming_message), incoming_message.message.chat.id);
             return;
         }
+        
+        const res : string = await this.cmd[user_command].telegram_prompt(incoming_message);
+        if (!res)  return;
 
-        await this.telegram.send_message('Unknown command received. Type help for a list of available commands.', incoming_message.message.chat.id);
+        await this.telegram.send_message(res, incoming_message.message.chat.id);
         return;
     }
 }

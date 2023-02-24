@@ -5,18 +5,13 @@ import type { TelegramMessage } from '../utils/types/telegram_message';
 
 @Injectable()
 export class ChatgptService {
-    private telegram: Telegram;
     private chatgpt: ChatGPT;
 
     constructor() {
-        if (process.env.TELEGRAM_API_KEY === undefined) {
-            throw new Error('TELEGRAM_API_KEY is undefined');
-        }
         if (process.env.OPENAI_API_KEY === undefined) {
             throw new Error('OPENAI_API_KEY is undefined');
         }
-        this.telegram = new Telegram(process.env.TELEGRAM_API_KEY);
-        this.chatgpt = new ChatGPT(process.env.OPENAI_API_KEY, true);
+        this.chatgpt = new ChatGPT(process.env.OPENAI_API_KEY, false);
     }
 
     async telegram_prompt(incoming_message: TelegramMessage) {
@@ -30,11 +25,9 @@ export class ChatgptService {
         const response = await this.chatgpt.handle_prompt(prompt_setup + incoming_message.message.text);
 
         if (response instanceof Error) {
-            await this.telegram.send_message('CHATGPT_ERROR: ' + response, incoming_message.message.chat.id);
             console.error(response);
-            return;
+            return `🤖: An error occured while trying to generate a response.`
         }
-
-       await  this.telegram.send_message(`🤖: ${response}`, incoming_message.message.chat.id);
+        return `🤖: ${response}`
     };
 }
