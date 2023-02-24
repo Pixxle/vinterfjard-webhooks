@@ -17,8 +17,8 @@ const AUTHENTICATIED_USERS = {
 }
 
 type command_service_handler = {
-    [CHATGPT_COMMAND]: ChatgptService,
-    [NOTION_COMMAND]: NotionService,
+    [CHATGPT_COMMAND]: Function,
+    [NOTION_COMMAND]: Function,
 }
 
 /* TELEGRAM WEBHOOK CONTROLLER */
@@ -34,10 +34,13 @@ export class TelegramController {
             throw new Error('TELEGRAM_API_KEY is undefined');
         }
         this.telegram = new Telegram(process.env.TELEGRAM_API_KEY);
+        this.register_commands();
+    }
 
+    private register_commands (){
         this.command_service = {
-            [CHATGPT_COMMAND]: this.chatGPTService,
-            [NOTION_COMMAND]: this.notionService,
+            [CHATGPT_COMMAND]: this.chatGPTService.telegram_prompt.bind(this.chatGPTService),
+            [NOTION_COMMAND]: this.notionService.telegram_prompt.bind(this.notionService),
         }
     }
 
@@ -87,7 +90,7 @@ export class TelegramController {
             return;
         }
         
-        const res : string = await this.command_service[user_command].telegram_prompt(incoming_message);
+        const res : string = await this.command_service[user_command](incoming_message);
         if (!res)  return;
 
         await this.telegram.send_message(res, incoming_message.message.chat.id);
