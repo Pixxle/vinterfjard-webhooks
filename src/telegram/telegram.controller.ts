@@ -1,5 +1,6 @@
 import { Controller, Post, Body } from "@nestjs/common";
 import { ChatgptService } from "../chatgpt/chatgpt.service";
+import { DresdenService } from "src/dresden/dresden.service";
 import { TelegramMessage } from "../utils/types/telegram_message";
 import { Telegram } from "../repository/telegram";
 import { NotionService } from "src/notion/notion.service";
@@ -13,13 +14,14 @@ import {
 /* This is ugly as sin, but don't _really_ consider this sensitive information  */
 const AUTHENTICATIED_USERS = {
   dennisvinterfjard: [CHATGPT_COMMAND, NOTION_COMMAND, DRESDEN_PROGRESS],
-
+  sampes88: [CHATGPT_COMMAND, DRESDEN_PROGRESS],
   Silvervarg: [NOTION_COMMAND],
 };
 
 type command_service_handler = {
   [CHATGPT_COMMAND]: Function;
   [NOTION_COMMAND]: Function;
+  [DRESDEN_PROGRESS]: Function;
 };
 
 /* TELEGRAM WEBHOOK CONTROLLER */
@@ -27,9 +29,11 @@ type command_service_handler = {
 export class TelegramController {
   private telegram: Telegram;
   private command_service: command_service_handler;
+  private dresden_service: DresdenService;
   constructor(
     private chatGPTService: ChatgptService,
-    private notionService: NotionService
+    private notionService: NotionService,
+    private dresdenService: DresdenService
   ) {
     if (process.env.TELEGRAM_API_KEY === undefined) {
       throw new Error("TELEGRAM_API_KEY is undefined");
@@ -45,6 +49,9 @@ export class TelegramController {
       ),
       [NOTION_COMMAND]: this.notionService.telegram_prompt.bind(
         this.notionService
+      ),
+      [DRESDEN_PROGRESS]: this.dresdenService.telegram_prompt.bind(
+        this.dresdenService
       ),
     };
   }
