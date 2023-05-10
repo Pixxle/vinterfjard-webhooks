@@ -7,11 +7,12 @@ import {
   HELP_COMMAND,
   CHATGPT_COMMAND,
   NOTION_COMMAND,
+  DRESDEN_PROGRESS,
 } from "../utils/constants/commands";
 
 /* This is ugly as sin, but don't _really_ consider this sensitive information  */
 const AUTHENTICATIED_USERS = {
-  dennisvinterfjard: [CHATGPT_COMMAND, NOTION_COMMAND],
+  dennisvinterfjard: [CHATGPT_COMMAND, NOTION_COMMAND, DRESDEN_PROGRESS],
 
   Silvervarg: [NOTION_COMMAND],
 };

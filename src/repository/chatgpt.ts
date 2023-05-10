@@ -26,7 +26,7 @@ export class ChatGPT {
         n: 1,
         stream: false,
         stop: ["####"],
-        max_tokens: 64,
+        max_tokens: 300,
       })
       .then((res) => {
         if (!res) return "";
