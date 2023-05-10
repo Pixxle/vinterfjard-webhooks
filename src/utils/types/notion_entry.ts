@@ -1,4 +1,4 @@
 export type NotionEntry = {
-    Name: string;
-    Link?: string;
+  Name: string;
+  Link?: string;
 };
